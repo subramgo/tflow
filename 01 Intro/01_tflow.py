@@ -3,6 +3,8 @@
 
 1. Constants
 2. Create and run a session 
+3. Sequences
+4. Random Values
 
 Demonstrate a simple operation using tensor constant 
 addition operation.

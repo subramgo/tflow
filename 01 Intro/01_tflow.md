@@ -53,6 +53,16 @@ Once completed the session needs to be closed, to release all the resources held
 The code segment correponding to creating the constants and declaring the addion operation is 'graph building'. When the operation involving the operators is called by run function of session object, the graph is evaluated.
 
 
+## Variables
+
+* Memory buffers to hold tensor objects
+
+
+## Segmentation
+
+* Segmentation is partitioning of a tensor along with first dimension, i.e. mapping of rows to segments.
+* 
+
 
 ## Reference
 [1] https://www.tensorflow.org/versions/r0.7/how_tos/variables/index.html
