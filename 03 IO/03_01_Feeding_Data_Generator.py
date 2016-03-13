@@ -1,13 +1,14 @@
 """
-Simple Linear Regression using
-Tensorflow
+Training in batch 
+Reading data from a Python function 
+
 
 1. Feed data from a Python generator
 2. Batch gradient descent for ridge regression 
 3. Reusing theta calculated in the previous batch 
 
 Gopi Subramanian
-12-March-2016
+13-March-2016
 """
 
 import tensorflow as tf 
