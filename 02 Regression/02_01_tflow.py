@@ -33,8 +33,9 @@ p = p + 1
 
 # Linear regression model
 # y = W * x + b
-theta  = tf.Variable(tf.zeros([p,1]), name='coeffiecients')
-alpha  = tf.constant(0.001)
+with tf.name_scope('model') as scope:
+    theta  = tf.Variable(tf.zeros([p,1]), name='coeffiecients')
+    alpha  = tf.constant(0.001)
 
 # Summary for tensorboard
 theta_hist = tf.histogram_summary("theta", theta)
@@ -53,8 +54,9 @@ print y_pred.get_shape()
 
 # Loss function with regularization
 # cost = 1/2n (sum ( square (theta*x - y )) ) + alpha * abs(theta) )
-lasso_term = alpha * (tf.reduce_sum(tf.abs(theta)))
-cost = tf.div( tf.reduce_sum( tf.square( tf.sub ( y_pred, y_ ) ) ) + lasso_term , 2*n )
+with tf.name_scope('model') as scope:
+    lasso_term = alpha * (tf.reduce_sum(tf.abs(theta)))
+    cost = tf.div( tf.reduce_sum( tf.square( tf.sub ( y_pred, y_ ) ) ) + lasso_term , 2*n ,name = "cost")
 
 # For tensorboard visualizing
 cost_summary = tf.scalar_summary("cost", cost)
