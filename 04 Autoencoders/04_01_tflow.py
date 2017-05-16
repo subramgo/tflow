@@ -97,8 +97,9 @@ for i in range(no_batches):
 	    old_training_cost = training_cost
 	print 'Evaluation at batch %d is %0.3f'%(i+1, session.run(cost, feed_dict = feed_dict ))
 
+print session.run(y, feed_dict = feed_dict)
 
-
+session.close()
 
 
 
