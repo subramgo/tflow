@@ -30,19 +30,26 @@ tf.set_random_seed(100)
 ### Model Parameters
 theta = tf.Variable(tf.zeros([p,1]), name='theta')
 ### Place holders for training data
-x  = tf.placeholder(tf.float32, shape = [n,p])
-y_ = tf.placeholder(tf.float32, shape = [n,1])
+with tf.name_scope("X"):
+	x  = tf.placeholder(tf.float32, shape = [n,p])
+
+with tf.name_scope("y"):
+	y_ = tf.placeholder(tf.float32, shape = [n,1])
 
 ### Loss function with regularization
 ### cost = 1/2n (sum ( square (theta*x - y )) ) + alpha * abs(theta) )
-alpha  = tf.constant(0.001)
-lasso_term = alpha * (tf.reduce_sum(tf.abs(theta)))
+
+with tf.name_scope("Alpha"):
+	alpha  = tf.constant(0.001)
+
+with tf.name_scope("Ridge_Term"):
+	ridge_term = alpha * (tf.reduce_sum(tf.square(theta)))
 
 with tf.name_scope("Model"):
 	linear_model = tf.matmul(x, theta) 
 
 with tf.name_scope("Cost"):
-	cost = tf.div(tf.reduce_sum ( tf.square( tf.subtract(linear_model , y_) )) + lasso_term, 2*n, name = 'cost')
+	cost = tf.div(tf.reduce_sum ( tf.square( tf.subtract(linear_model , y_) )) + ridge_term, 2*n, name = 'cost')
 
 ### Optimizer
 ### Gradient descent learning
