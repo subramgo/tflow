@@ -10,7 +10,7 @@ Gopi Subramanian
 import tensorflow as tf 
 import numpy as np 
 from sklearn.datasets import make_regression
-
+import time
 
 np.random.seed(100)
 ### Make a regression dataset with coeffiecients
@@ -29,8 +29,8 @@ tf.set_random_seed(100)
 ### Model Parameters
 theta = tf.Variable(tf.zeros([p,1]), name='theta')
 ### Place holders for training data
-x  = tf.placeholder(tf.float32, shape = [n,p])
-y_ = tf.placeholder(tf.float32, shape = [n,1])
+x  = tf.placeholder(tf.float32, shape = [None,p])
+y_ = tf.placeholder(tf.float32, shape = [None,1])
 
 ### Loss function with regularization
 ### cost = 1/2n (sum ( square (theta*x - y )) ) + alpha * abs(theta) )
@@ -51,11 +51,13 @@ session = tf.Session()
 session.run(init)
 
 epochs = 2000
+startTime = time.time()
 # Start training
 for i in range(epochs):
     feed_dict = {x:X, y_:y}
     session.run(optimizer, feed_dict = feed_dict)
 
+print("Time taken: %f" % (time.time() - startTime))
 
 # evaluate training accuracy
 curr_theta, curr_loss  = session.run([theta,cost], {x:X, y_:y})

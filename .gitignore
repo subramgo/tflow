@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+*logs
+References.txt
+env
+
 # Distribution / packaging
 .Python
 env/
