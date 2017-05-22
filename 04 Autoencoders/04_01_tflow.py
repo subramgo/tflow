@@ -3,6 +3,9 @@ Auto Encoders
 
 
 
+input - encoder-hlayer1 - encoder-hlayer2 - decoder-hlayer-1 - decoder-hlayer-2
+
+
 Gopi Subramanian
 13-March-2016
 """
@@ -10,12 +13,12 @@ Gopi Subramanian
 import tensorflow as tf
 import numpy as np 
 from sklearn.datasets import make_regression
+from tqdm import *
 
 
 batch_size  = 500
-no_features = 50
+no_features = 500
 no_batches = 10
-epochs     = 500
 
 tf.set_random_seed(100)
 
@@ -42,62 +45,90 @@ def batch_generator(start, end):
 	return (x_batch, y_batch)
 
 
-# Number of auto encoders stacked together
-NO_LAYERS         = 1
-HIDDEN_LAYER_SIZE = 10
-input_layer_size = X.shape[1]
+### Auto encoder parameters
+n_hidden_1 = 250
+n_hidden_2 = 50
+n_input    = no_features
+
+### Input place holder
+x = tf.placeholder(tf.float32, shape = [batch_size,no_features])
+
+weights = {
+	'encoder_w_hidden_1': tf.Variable(tf.random_normal([n_input, n_hidden_1])),
+	'encoder_w_hidden_2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
+	'decoder_w_hidden_1': tf.Variable(tf.random_normal([n_hidden_2, n_hidden_1])),
+	'decoder_w_hidden_2': tf.Variable(tf.random_normal([n_hidden_1, n_input]))
+
+}
+
+
+biases = {
+	'encoder_b_1': tf.Variable(tf.random_normal([n_hidden_1])),
+	'encoder_b_2': tf.Variable(tf.random_normal([n_hidden_2])),
+	'decoder_b_1': tf.Variable(tf.random_normal([n_hidden_1])),
+	'decoder_b_2': tf.Variable(tf.random_normal([n_input]))
+
+}
+
+def encoder(input):
+	layer_1 = tf.nn.sigmoid( tf.add( tf.matmul(input, weights['encoder_w_hidden_1']), biases['encoder_b_1']))
+	layer_2 = tf.nn.sigmoid( tf.add( tf.matmul(layer_1, weights['encoder_w_hidden_2']), biases['encoder_b_2']))
+
+	return layer_2
+
+def decoder(input):
+	layer_1 = tf.nn.sigmoid( tf.add( tf.matmul(input, weights['decoder_w_hidden_1']), biases['decoder_b_1']))
+	layer_2 = tf.nn.sigmoid( tf.add( tf.matmul(layer_1, weights['decoder_w_hidden_2']), biases['decoder_b_2']))
+
+	return layer_2
+
+
+encoder_node = encoder(x)
+decoder_node = decoder(encoder_node)
 
 
 
-# Build graph
-W = tf.Variable(tf.random_uniform([input_layer_size, HIDDEN_LAYER_SIZE] )   , name = "Weight")
-b = tf.Variable(tf.zeros([1]))
-b_dash = tf.Variable(tf.zeros([1]))
 
-x  = tf.placeholder(tf.float32, shape = [batch_size, input_layer_size])
+y_predicted = decoder_node
+y_actual = x 
 
-y_b = tf.matmul(x,W)
-y = tf.nn.sigmoid(tf.matmul(x, W) + b)
+cost = tf.reduce_mean(tf.square(y_predicted - y_actual))
+optimizer = tf.train.RMSPropOptimizer(0.01).minimize(cost)
 
-
-W_dash = tf.transpose(W)
-z = tf.nn.sigmoid( tf.matmul(y, W_dash) + b_dash )
-cost = tf.sqrt(tf.reduce_mean(tf.square(x - z)))
-
-learning_rate = 0.001
-training = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
-
-
-
-# intialize variables and begin session
-init = tf.initialize_all_variables()
+init = tf.global_variables_initializer()
 session = tf.Session()
 session.run(init)
 
-#print session.run(W)
-
+epochs = 1000
 # Train the model
-for i in range(no_batches):
-	print 'Training batch %d'%(i+1)
+for epoch in tqdm(range(epochs)):
+	#if epoch%100 == 0:
+	#	print "Number of epochs completed {}".format(epoch)
 	start = 0
 	end   = batch_size
-	batch = batch_generator(start, end)
-	start = end 
-	end = end + batch_size
-	in_data = batch[0]
-	old_training_cost = 0
-	for j in range(epochs):
-	    np.random.shuffle(in_data) # Shuffle the data
-	    feed_dict = {x:in_data}
-	    session.run(training, feed_dict = feed_dict)
-	    training_cost = session.run(cost, feed_dict = feed_dict)
-	    if np.abs(training_cost - old_training_cost) < 0.00001:
-	    	print '\tTraining cost at iteration %d is %0.3f'%(j+1, training_cost)
-	    	break
-	    old_training_cost = training_cost
-	print 'Evaluation at batch %d is %0.3f'%(i+1, session.run(cost, feed_dict = feed_dict ))
+	for i in range(no_batches):
+		batch = batch_generator(start, end)
+		start = end 
+		end = end + batch_size
+		in_data = batch[0]
+		np.random.shuffle(in_data) # Shuffle the data
+		feed_dict = {x:in_data}
+		session.run(optimizer, feed_dict = feed_dict)
 
-print session.run(y, feed_dict = feed_dict)
+
+# evaluate training accuracy
+curr_loss  = session.run([cost], {x:batch_generator(0, batch_size)[0]})
+print
+print "############################   Goodness of the model ########################################"
+print
+print "Loss = {}".format(curr_loss)
+
+
+## Another nosiy dataset
+X_noisy, y  = make_regression(n_samples = 500, n_features = 500, n_targets =1 , noise = 0.25)
+curr_loss  = session.run([cost], {x:X_noisy})
+print "Loss = {}".format(curr_loss)
+
 
 session.close()
 
